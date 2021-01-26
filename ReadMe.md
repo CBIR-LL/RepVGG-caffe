@@ -67,3 +67,11 @@ demo pytorch
 263 n02113023 Pembroke, Pembroke Welsh corgi 0.10508245974779129
 278 n02119789 kit fox, Vulpes macrotis 0.04690106585621834
 ```
+
+##convert
+How to convert train-model to deploy-model?
+
+Adjust gen_merged_model.py and run it. Then you can use demo.py to verify.
+```
+python gen_merged_model.py
+```
