@@ -72,7 +72,8 @@ demo pytorch
 
 How to convert train-model to deploy-model?    
 
-1: Copy Repvgg-A0.protxt and rename it Repvgg-A0-deploy.prototxt
+1: Copy Repvgg-A0.protxt and rename it Repvgg-A0-deploy.prototxt  
+
 2: Adjust gen_merged_model.py and run it. Then you can use demo.py to verify.   
 ```
 python gen_merged_model.py
