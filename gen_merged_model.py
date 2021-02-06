@@ -22,38 +22,41 @@ def analysis_network(num_blocks):
         layer_number += layer_in_block
     return layer_3x3_1x1, layer_count
 
+# copy data
+def copy_float(data):
+    return np.array(data, copy=True, dtype=np.float32)
+
+
 # fuse 3x3  
 def fuse_conv_bn_3x3(net_src, id_layer_conv, id_layer_bn, Flag_conv_has_bias):
-    def copy_double(data):
-        return np.array(data, copy=True, dtype=np.double)
-        
+       
     key_conv = "conv" + str(id_layer_conv)
     key_bn = "batch_norm" + str(id_layer_bn)
     key_scale = "bn_scale" + str(id_layer_bn)     
     print ('Combine {:s} + {:s} + {:s}'.format(key_conv, key_bn, key_scale))
     
     # copy bn value
-    bn_mean = copy_double(net_src.params[key_bn][0].data)
-    bn_variance = copy_double(net_src.params[key_bn][1].data)
-    num_bn_samples = copy_double(net_src.params[key_bn][2].data)
+    bn_mean = copy_float(net_src.params[key_bn][0].data)
+    bn_variance = copy_float(net_src.params[key_bn][1].data)
+    num_bn_samples = copy_float(net_src.params[key_bn][2].data)
 
     if num_bn_samples[0] == 0:
         num_bn_samples[0] = 1
 
     # copy scale value
-    scale_weight = copy_double(net_src.params[key_scale][0].data)
-    scale_bias = copy_double(net_src.params[key_scale][1].data)
+    scale_weight = copy_float(net_src.params[key_scale][0].data)
+    scale_bias = copy_float(net_src.params[key_scale][1].data)
     
     # copy conv value
-    weight = copy_double(net_src.params[key_conv][0].data)
+    weight = copy_float(net_src.params[key_conv][0].data)
     if Flag_conv_has_bias:
-        bias = copy_double(net_src.params[key_conv][1].data)
+        bias = copy_float(net_src.params[key_conv][1].data)
     else:
         bias =(0,)*weight.shape[0]
-        bias = np.array(bias, dtype=np.double)
+        bias = np.array(bias, dtype=np.float32)
     
     # update
-    alpha = scale_weight / np.sqrt(bn_variance / num_bn_samples[0] + np.finfo(np.double).eps)
+    alpha = scale_weight / np.sqrt(bn_variance / num_bn_samples[0] + np.finfo(np.float32).eps)
     
     # merge 
     new_bias = bias * alpha + (scale_bias - (bn_mean / num_bn_samples[0]) * alpha)
@@ -65,8 +68,6 @@ def fuse_conv_bn_3x3(net_src, id_layer_conv, id_layer_bn, Flag_conv_has_bias):
 
 # fuse 1x1   
 def fuse_conv_bn_1x1(net_src, id_layer_conv, id_layer_bn, Flag_conv_has_bias):
-    def copy_double(data):
-        return np.array(data, copy=True, dtype=np.double)
         
     key_conv = "conv" + str(id_layer_conv)
     key_bn = "batch_norm" + str(id_layer_bn)
@@ -74,27 +75,27 @@ def fuse_conv_bn_1x1(net_src, id_layer_conv, id_layer_bn, Flag_conv_has_bias):
     print ('Combine {:s} + {:s} + {:s}'.format(key_conv, key_bn, key_scale))
     
     # copy bn value
-    bn_mean = copy_double(net_src.params[key_bn][0].data)
-    bn_variance = copy_double(net_src.params[key_bn][1].data)
-    num_bn_samples = copy_double(net_src.params[key_bn][2].data)
+    bn_mean = copy_float(net_src.params[key_bn][0].data)
+    bn_variance = copy_float(net_src.params[key_bn][1].data)
+    num_bn_samples = copy_float(net_src.params[key_bn][2].data)
 
     if num_bn_samples[0] == 0:
         num_bn_samples[0] = 1
 
     # copy scale value
-    scale_weight = copy_double(net_src.params[key_scale][0].data)
-    scale_bias = copy_double(net_src.params[key_scale][1].data)
+    scale_weight = copy_float(net_src.params[key_scale][0].data)
+    scale_bias = copy_float(net_src.params[key_scale][1].data)
     
     # copy conv value
-    weight = copy_double(net_src.params[key_conv][0].data)
+    weight = copy_float(net_src.params[key_conv][0].data)
     if Flag_conv_has_bias:
-        bias = copy_double(net_src.params[key_conv][1].data)
+        bias = copy_float(net_src.params[key_conv][1].data)
     else:
         bias =(0,)*weight.shape[0]
-        bias = np.array(bias, dtype=np.double)
+        bias = np.array(bias, dtype=np.float32)
     
     # update
-    alpha = scale_weight / np.sqrt(bn_variance / num_bn_samples[0] + np.finfo(np.double).eps)
+    alpha = scale_weight / np.sqrt(bn_variance / num_bn_samples[0] + np.finfo(np.float32).eps)
     
     # merge 
     new_bias = bias * alpha + (scale_bias - (bn_mean / num_bn_samples[0]) * alpha)
@@ -108,38 +109,36 @@ def fuse_conv_bn_1x1(net_src, id_layer_conv, id_layer_bn, Flag_conv_has_bias):
 
 # fuse identity
 def fuse_conv_bn_id(net_src, id_layer_bn, Flag_conv_has_bias):
-    def copy_double(data):
-        return np.array(data, copy=True, dtype=np.double)
         
     key_bn = "batch_norm" + str(id_layer_bn)
     key_scale = "bn_scale" + str(id_layer_bn)     
     print ('Combine {:s} + {:s}'.format(key_bn, key_scale))
     
     # copy bn value
-    bn_mean = copy_double(net_src.params[key_bn][0].data)
-    bn_variance = copy_double(net_src.params[key_bn][1].data)
-    num_bn_samples = copy_double(net_src.params[key_bn][2].data)
+    bn_mean = copy_float(net_src.params[key_bn][0].data)
+    bn_variance = copy_float(net_src.params[key_bn][1].data)
+    num_bn_samples = copy_float(net_src.params[key_bn][2].data)
 
     if num_bn_samples[0] == 0:
         num_bn_samples[0] = 1
 
     # copy scale value
-    scale_weight = copy_double(net_src.params[key_scale][0].data)
-    scale_bias = copy_double(net_src.params[key_scale][1].data)
+    scale_weight = copy_float(net_src.params[key_scale][0].data)
+    scale_bias = copy_float(net_src.params[key_scale][1].data)
     
     # copy conv value
     input_dim = bn_mean.shape[0]
     
     # create 3x3_tensor
-    weight = np.zeros((input_dim, input_dim, 3, 3), dtype=np.double)
+    weight = np.zeros((input_dim, input_dim, 3, 3), dtype=np.float32)
     for i in range(input_dim):
         weight[i, i % input_dim, 1, 1] = 1
                 
     bias =(0,)*weight.shape[0]
-    bias = np.array(bias, dtype=np.double)
+    bias = np.array(bias, dtype=np.float32)
 
     # update
-    alpha = scale_weight / np.sqrt(bn_variance / num_bn_samples[0] + np.finfo(np.double).eps)
+    alpha = scale_weight / np.sqrt(bn_variance / num_bn_samples[0] + np.finfo(np.float32).eps)
     
     # merge 
     new_bias = bias * alpha + (scale_bias - (bn_mean / num_bn_samples[0]) * alpha)
